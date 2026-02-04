@@ -60,7 +60,8 @@ impl Context {
         }
 
         prompt.push_str("\n### Target Flow Signature\n");
-        prompt.push_str(&format!("flow {}(params) -> {:?}\n", flow.name, flow.return_ty));
+        let params_str = if flow.params.is_empty() { "" } else { "params" };
+        prompt.push_str(&format!("flow {}({}) -> {:?}\n", flow.name, params_str, flow.return_ty));
 
         prompt.push_str("\n### Intent\n");
         if let Implementation::Inline(lines) = &flow.implementation {
@@ -70,9 +71,17 @@ impl Context {
         }
 
         prompt.push_str("\n### Requirements\n");
-        prompt.push_str("- Output ONLY the valid Rust code within the function body.\n");
-        prompt.push_str("- Do not include markdown blocks or extra text.\n");
+        prompt.push_str("- Output ONLY the raw Rust code for the function.\n");
+        prompt.push_str("- NO markdown fencing (```rust).\n");
+        prompt.push_str("- NO conversational text or explanations.\n");
         prompt.push_str("- Use the provided schema definitions.\n");
+        prompt.push_str(&format!("- The function name MUST be `{}`.\n", flow.name));
+        if flow.params.is_empty() {
+             prompt.push_str("- The function should take NO arguments (e.g., `fn hello()`).\n");
+        }
+        prompt.push_str("- Assume standard imports like `std::collections::HashMap` are available.\n");
+        prompt.push_str("- DO NOT add standard imports (like `use std::...`) inside the function or block. They are already provided globally.\n");
+        prompt.push_str("- If the intent is simple (like print), use `println!`.\n");
 
         Some(prompt)
     }

@@ -42,8 +42,7 @@ fn parse_ais_declaration(input: &mut &str) -> PResult<Declaration> {
     (multispace0, 
         winnow::combinator::alt((
             parse_ais_import.map(Declaration::Import),
-            parse_ais_impl_block.map(Declaration::Flow),
-            parse_ais_pure_flow.map(Declaration::Flow),
+            parse_ais_flow_block.map(Declaration::Flow),
         ))
     )
     .map(|res: (&str, Declaration)| res.1)
@@ -56,30 +55,24 @@ fn parse_ais_import(input: &mut &str) -> PResult<String> {
         .parse_next(input)
 }
 
-// @impl name
-//   - intent line
-fn parse_ais_impl_block(input: &mut &str) -> PResult<Flow> {
-    ("@impl", space1, alphanumeric1, multispace0, parse_intent_lines)
-        .map(|res: (&str, &str, &str, &str, Vec<String>)| Flow {
-            name: res.2.to_string(),
-            params: vec![],
-            return_ty: None,
-            implementation: Implementation::Inline(res.4),
-        })
-        .parse_next(input)
-}
-
-// flow name(params)
-//   - intent line
-fn parse_ais_pure_flow(input: &mut &str) -> PResult<Flow> {
-    ("flow", space1, take_till(0.., '('), "(", take_till(0.., ')'), ")", multispace0, parse_intent_lines)
-        .map(|res: (&str, &str, &str, &str, &str, &str, &str, Vec<String>)| Flow {
-            name: res.2.trim().to_string(),
-            params: vec![], // For MVP, keeping params simple
-            return_ty: None,
-            implementation: Implementation::Inline(res.7),
-        })
-        .parse_next(input)
+// flow name (params)
+// or @impl name
+fn parse_ais_flow_block(input: &mut &str) -> PResult<Flow> {
+    (
+        alt(("flow", "@impl")),
+        space1,
+        take_till(1.., ('(', '\n', '\r', ' ')), // Name
+        opt( (space0, "(", take_till(0.., ')'), ")") ), // Optional params
+        multispace0,
+        parse_intent_lines
+    )
+    .map(|res| Flow {
+        name: res.2.trim().to_string(),
+        params: vec![], // For MVP
+        return_ty: None,
+        implementation: Implementation::Inline(res.5),
+    })
+    .parse_next(input)
 }
 
 fn parse_intent_lines(input: &mut &str) -> PResult<Vec<String>> {
