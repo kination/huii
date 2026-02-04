@@ -30,7 +30,7 @@ impl LLMClient {
     }
 
     pub fn default() -> Self {
-        let model = std::env::var("LST_MODEL").unwrap_or_else(|_| "qwen2.5:0.5b".to_string());
+        let model = std::env::var("HUII_MODEL").unwrap_or_else(|_| "qwen2.5:0.5b".to_string());
         Self::new("http://localhost:11434/api/generate", &model)
     }
 
