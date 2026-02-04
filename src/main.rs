@@ -15,7 +15,7 @@ use crate::context::builder::Context;
 async fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        println!("Usage: lst <file.bp|file.ais> [-g|--generate] [-m|--model <model>] [--run] [--out <file>] [-v|--verbose]");
+        println!("Usage: huii <file.bp|file.ais> [-g|--generate] [-m|--model <model>] [--run] [--out <file>] [-v|--verbose]");
         return;
     }
 
@@ -25,7 +25,7 @@ async fn main() {
     let verbose_mode = args.contains(&"-v".to_string()) || args.contains(&"--verbose".to_string());
     
     // Parse arguments
-    let mut model_name = std::env::var("LST_MODEL").unwrap_or_else(|_| "qwen2.5:0.5b".to_string());
+    let mut model_name = std::env::var("HUII_MODEL").unwrap_or_else(|_| "qwen2.5:0.5b".to_string());
     let mut out_file = None;
 
     let mut i = 0;
