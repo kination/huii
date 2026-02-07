@@ -1,1 +1,5 @@
-- print "hello newlang"
+---
+in: []
+out: []
+---
+print "hello newlang"

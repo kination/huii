@@ -1,14 +1,12 @@
-import "particle.hbp"
-
-- gravity: 9.8 m/s^2 down
-- Euler integration: pos += vel * dt
-- damping: vel *= 0.99
-
-// Natural Language Return
-- finally, return the updated particle stream with new positions
-
-@test
-flow check_gravity
-    - given: Particle(vel=(0,0,0))
-    - when: update_particles(dt=1.0)
-    - then: vel.y < 0
+---
+in:
+  - key: p
+    type: Particle
+  - key: dt
+    type: float
+out: []
+---
+Update particle physics.
+Gravity is 9.8 m/s^2 down.
+Euler integration: pos += vel * dt.
+Damping: vel *= 0.99.

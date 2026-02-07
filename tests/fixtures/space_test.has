@@ -1,4 +1,7 @@
-// Multi-word flow name test
-flow create_user(name)
-    - name is already normalized
-    - logic here
+---
+in:
+  - key: name
+    type: string
+out: []
+---
+Process the user name.

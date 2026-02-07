@@ -1,0 +1,6 @@
+{
+  "source_hash": "fed83ea0899c3e9c0a6e51eee2516c4af33c5230f3565adf181a75c9f047e6d9",
+  "generated_code": "fn hello() -> () {\n    println!(\"hello newlang\");\n}",
+  "verified_at": "2026-02-07T12:11:41.933622+00:00",
+  "passed_tests": []
+}
