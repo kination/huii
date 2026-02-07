@@ -8,6 +8,7 @@ pub struct Program {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Declaration {
     Schema(Schema),
+    Enum(Enum),
     Flow(Flow),
     Import(String),
 }
@@ -16,6 +17,19 @@ pub enum Declaration {
 pub struct Schema {
     pub name: String,
     pub fields: Vec<Field>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Enum {
+    pub name: String,
+    pub variants: Vec<Variant>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Variant {
+    Unit(String),
+    Tuple(String, Vec<Type>),
+    Struct(String, Vec<Field>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

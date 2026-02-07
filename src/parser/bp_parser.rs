@@ -27,6 +27,7 @@ fn parse_declaration(input: &mut &str) -> PResult<Declaration> {
         winnow::combinator::alt((
             parse_import.map(Declaration::Import),
             parse_schema.map(Declaration::Schema),
+            parse_enum.map(Declaration::Enum),
             parse_flow.map(Declaration::Flow),
         ))
     )
@@ -42,12 +43,43 @@ fn parse_import(input: &mut &str) -> PResult<String> {
 
 fn parse_schema(input: &mut &str) -> PResult<Schema> {
     ("schema", space1, alphanumeric1, multispace0, "{", multispace0, 
-        separated(0.., parse_field, (multispace0, opt(","), multispace0)),
-    multispace0, "}")
-    .map(|res: (&str, &str, &str, &str, &str, &str, Vec<Field>, &str, &str)| Schema {
+        separated(0.., parse_field, (multispace0, ",", multispace0)),
+    multispace0, opt(","), multispace0, "}")
+    .map(|res| Schema {
         name: res.2.to_string(),
         fields: res.6,
     })
+    .parse_next(input)
+}
+
+fn parse_enum(input: &mut &str) -> PResult<Enum> {
+    ("enum", space1, alphanumeric1, multispace0, "{", multispace0,
+        separated(0.., parse_variant, (multispace0, ",", multispace0)),
+    multispace0, opt(","), multispace0, "}")
+    .map(|res| Enum {
+        name: res.2.to_string(),
+        variants: res.6,
+    })
+    .parse_next(input)
+}
+
+fn parse_variant(input: &mut &str) -> PResult<Variant> {
+    alt((
+        // Struct variant: Active { since: i32 }
+        (alphanumeric1, multispace0, "{", multispace0, 
+         separated(0.., parse_field, (multispace0, ",", multispace0)), 
+         multispace0, opt(","), multispace0, "}")
+        .map(|(name, _, _, _, fields, _, _, _, _)| Variant::Struct(name.to_string(), fields)),
+
+        // Tuple variant: Suspended(String)
+        (alphanumeric1, multispace0, "(", multispace0, 
+         separated(0.., parse_type, (multispace0, ",", multispace0)), 
+         multispace0, opt(","), multispace0, ")")
+        .map(|(name, _, _, _, types, _, _, _, _)| Variant::Tuple(name.to_string(), types)),
+
+        // Unit variant: Active
+        alphanumeric1.map(|name: &str| Variant::Unit(name.to_string())),
+    ))
     .parse_next(input)
 }
 
@@ -62,12 +94,12 @@ fn parse_field(input: &mut &str) -> PResult<Field> {
 
 fn parse_flow(input: &mut &str) -> PResult<Flow> {
     ("flow", space1, alphanumeric1, multispace0, "(", 
-        separated(0.., parse_param, (multispace0, opt(","), multispace0)),
-    ")", multispace0, opt(("->", multispace0, parse_type)), multispace0, "{", multispace0, "}")
-    .map(|res: (&str, &str, &str, &str, &str, Vec<Param>, &str, &str, Option<(&str, &str, Type)>, &str, &str, &str, &str)| Flow {
+        separated(0.., parse_param, (multispace0, ",", multispace0)),
+    multispace0, opt(","), multispace0, ")", multispace0, opt(("->", multispace0, parse_type)), multispace0, "{", multispace0, "}")
+    .map(|res| Flow {
         name: res.2.to_string(),
         params: res.5,
-        return_ty: res.8.map(|r| r.2),
+        return_ty: res.11.map(|r| r.2),
         implementation: Implementation::Empty,
     })
     .parse_next(input)
