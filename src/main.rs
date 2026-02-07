@@ -1,15 +1,15 @@
-mod parser;
-mod context;
-mod ai;
-mod lock;
-mod verifier;
-mod ir;
-mod codegen;
-mod cli;
+use huii::parser;
+use huii::context;
+use huii::ai;
+// use huii::lock; // unused
+// use huii::verifier; // unused
+// use huii::ir; // unused
+// use huii::codegen; // unused
+// use huii::cli; // unused
 
 use std::env;
 use std::fs;
-use crate::context::builder::Context;
+use huii::context::builder::Context;
 
 #[tokio::main]
 async fn main() {
