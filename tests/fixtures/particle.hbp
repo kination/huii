@@ -1,0 +1,9 @@
+schema Particle {
+    pos: Vec3,
+    vel: Vec3,
+    mass: f32,
+}
+
+flow update_particles(p: Stream<Particle>, dt: f32) -> Stream<Particle> {
+    source "particle.has"
+}

@@ -1,0 +1,4 @@
+// Multi-word flow name test
+flow create_user(name)
+    - name is already normalized
+    - logic here

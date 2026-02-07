@@ -1,0 +1,6 @@
+{
+  "source_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "generated_code": "def update_particles(p_stream, dt):\n    gravity = 9.8\n    for p in p_stream:\n        # Gravity is down (-y)\n        p.vel.y -= gravity * dt\n        # Euler integration\n        p.pos += p.vel * dt\n        # Damping\n        p.vel *= 0.99\n    return p_stream",
+  "verified_at": "2026-02-03T09:44:00Z",
+  "passed_tests": ["check_gravity"]
+}

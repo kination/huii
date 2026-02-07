@@ -1,0 +1,4 @@
+// Micro-Script Mode (Implicit Flow: app)
+- admin: false
+- status: "active"
+- return new user object
