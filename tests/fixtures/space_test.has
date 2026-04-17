@@ -4,4 +4,4 @@ in:
     type: string
 out: []
 ---
-Process the user name.
+Print "Hello " followed by the name.

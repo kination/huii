@@ -19,7 +19,7 @@ struct IOField {
     ty: String,
 }
 
-pub fn parse_ais(input: &mut &str) -> PResult<Program> {
+pub fn parse_has(input: &mut &str) -> PResult<Program> {
     // 1. Parse Frontmatter Block
     let _ = multispace0(input)?;
     let _ = "---".parse_next(input)?;

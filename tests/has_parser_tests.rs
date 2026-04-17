@@ -1,4 +1,4 @@
-use huii::parser::ais_parser::parse_ais;
+use huii::parser::has_parser::parse_has;
 use huii::parser::ast::{Declaration, Type, Implementation};
 
 #[test]
@@ -15,7 +15,7 @@ out:
 Check if email is valid.
 "#;
     let mut input = content.trim();
-    let program = parse_ais(&mut input).expect("Failed to parse");
+    let program = parse_has(&mut input).expect("Failed to parse");
 
     assert_eq!(program.declarations.len(), 1);
     if let Declaration::Flow(flow) = &program.declarations[0] {
@@ -49,7 +49,7 @@ out:
 Body
 "#;
     let mut input = content.trim();
-    let program = parse_ais(&mut input).expect("Failed to parse");
+    let program = parse_has(&mut input).expect("Failed to parse");
     
     if let Declaration::Flow(flow) = &program.declarations[0] {
         assert_eq!(flow.params.len(), 2);
@@ -71,7 +71,7 @@ out: []
 Process user
 "#;
     let mut input = content.trim();
-    let program = parse_ais(&mut input).expect("Failed to parse");
+    let program = parse_has(&mut input).expect("Failed to parse");
     
     if let Declaration::Flow(flow) = &program.declarations[0] {
         assert_eq!(flow.params[0].ty, Some(Type::Custom("UserProfile".to_string())));

@@ -18,5 +18,9 @@ pub enum Commands {
         model: Option<String>,
         #[arg(long)]
         force: bool, // Force regeneration even if lock matches
+        #[arg(long)]
+        verbose: bool, // Enable verbose logging
+        #[arg(trailing_var_arg = true)]
+        args: Vec<String>,
     },
 }

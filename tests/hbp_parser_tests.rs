@@ -1,4 +1,4 @@
-use huii::parser::bp_parser::parse_program;
+use huii::parser::hbp_parser::parse_program;
 use huii::parser::ast::{Declaration, Variant, Type};
 
 #[test]

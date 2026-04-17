@@ -54,7 +54,7 @@ pub struct Param {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Implementation {
-    Linked(String), // Implementation in a separate file (ais)
+    Linked(String), // Implementation in a separate file (has)
     Inline(Vec<String>), // Intent lines or manual implementation lines
     Empty,
 }

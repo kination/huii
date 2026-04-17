@@ -9,7 +9,7 @@ use crate::codegen::template_gen;
 use crate::lock::manager::{LockManager, LockData};
 use anyhow::{Result, anyhow};
 
-pub async fn execute_run(file_path: &str, model: Option<String>, force: bool) -> Result<()> {
+pub async fn execute_run(file_path: &str, model: Option<String>, force: bool, args: Vec<String>, verbose: bool) -> Result<()> {
     let path = Path::new(file_path);
     if !path.exists() {
         return Err(anyhow!("File not found: {}", file_path));
@@ -19,7 +19,7 @@ pub async fn execute_run(file_path: &str, model: Option<String>, force: bool) ->
 
     match path.extension().and_then(|s| s.to_str()) {
         Some("hbp") => parse_hbp_code(path).await,
-        Some("has") => parse_has_code(path, &model_name, force).await,
+        Some("has") => parse_has_code(path, &model_name, force, args, verbose).await,
         _ => Err(anyhow!("Unsupported file extension for huii. Use '.hbp' or '.has'")),
     }
 }
@@ -37,7 +37,10 @@ async fn parse_hbp_code(path: &Path) -> Result<()> {
     Ok(())
 }
 
-async fn parse_has_code(path: &Path, model_name: &str, force: bool) -> Result<()> {
+async fn parse_has_code(path: &Path, model_name: &str, force: bool, args: Vec<String>, verbose: bool) -> Result<()> {
+    if verbose {
+        println!("[VERBOSE] Parsing HAS file: {:?}", path);
+    }
     let content = fs::read_to_string(path)?;
     // Read from current lock first
     let current_hash = LockManager::compute_hash(&content);
@@ -59,7 +62,7 @@ async fn parse_has_code(path: &Path, model_name: &str, force: bool) -> Result<()
     if should_generate {
         // 2. Parse .has
         let mut input = content.as_str();
-        let program = parser::has_parser::parse_ais(&mut input)
+        let program = parser::has_parser::parse_has(&mut input)
              .map_err(|e| anyhow!("HAS Parse Error: {:?}", e))?;
 
         // 3. Build Context
@@ -75,7 +78,10 @@ async fn parse_has_code(path: &Path, model_name: &str, force: bool) -> Result<()
             code_to_run = template_code;
         } else {
             // 5. LLM-based generation with self-correction
-            code_to_run = generate_with_llm(&ctx, file_stem, model_name).await?;
+            if verbose {
+                println!("[VERBOSE] Generating code with LLM model: {}", model_name);
+            }
+            code_to_run = generate_with_llm(&ctx, file_stem, model_name, verbose).await?;
         }
 
         // 6. Final verification & locking
@@ -106,7 +112,7 @@ async fn parse_has_code(path: &Path, model_name: &str, force: bool) -> Result<()
     }
 
     // 7. Execute
-    execute_rust_code(&code_to_run, path).await
+    execute_rust_code(&code_to_run, path, args, verbose).await
 }
 
 /// LLM-based code generation with improved self-correction loop.
@@ -116,7 +122,7 @@ async fn parse_has_code(path: &Path, model_name: &str, force: bool) -> Result<()
 /// 2. On failure, try full-file generation with few-shot examples
 /// 3. On second failure, use a fresh correction prompt (not appended)
 /// 4. Abort early if same error repeats
-async fn generate_with_llm(ctx: &Context, file_stem: &str, model_name: &str) -> Result<String> {
+async fn generate_with_llm(ctx: &Context, file_stem: &str, model_name: &str, verbose: bool) -> Result<String> {
     let llm_client = LLMClient::new("http://localhost:11434/api/generate", model_name);
     let verifier = crate::verifier::semantic::Verifier::new();
     let temp_runner_path = Path::new("target/runners").join(format!("{}.rs", file_stem));
@@ -130,6 +136,9 @@ async fn generate_with_llm(ctx: &Context, file_stem: &str, model_name: &str) -> 
     let mut best_code = String::new();
 
     for attempt in 0..max_attempts {
+        if verbose {
+            println!("[VERBOSE] Attempt {}/{}...", attempt + 1, max_attempts);
+        }
         let raw_code = if attempt == 0 {
             // Attempt 1: body-only generation (simplest prompt, most reliable)
             if let Some((body_prompt, wrapper)) = ctx.generate_body_only_prompt(file_stem) {
@@ -200,7 +209,7 @@ fn extract_rust_code(text: &str) -> &str {
     }
 }
 
-async fn execute_rust_code(code: &str, original_path: &Path) -> Result<()> {
+async fn execute_rust_code(code: &str, original_path: &Path, args: Vec<String>, verbose: bool) -> Result<()> {
     let file_stem = original_path.file_stem().and_then(|s| s.to_str()).unwrap_or("runner");
     let target_dir = Path::new("target/runners");
     fs::create_dir_all(target_dir)?;
@@ -210,6 +219,9 @@ async fn execute_rust_code(code: &str, original_path: &Path) -> Result<()> {
 
     fs::write(&runner_path, code)?;
 
+    if verbose {
+        println!("[VERBOSE] Compiling generated Rust code...");
+    }
     let compile_output = Command::new("rustc")
         .arg(&runner_path)
         .arg("-o")
@@ -221,7 +233,12 @@ async fn execute_rust_code(code: &str, original_path: &Path) -> Result<()> {
         return Err(anyhow!("Compilation failed:\n{}", stderr));
     }
 
-    let run_output = Command::new(&binary_path).output()?;
+    if verbose {
+        println!("[VERBOSE] Running executable...");
+    }
+    let run_output = Command::new(&binary_path)
+        .args(args)
+        .output()?;
 
     print!("{}", String::from_utf8_lossy(&run_output.stdout));
     eprint!("{}", String::from_utf8_lossy(&run_output.stderr));
