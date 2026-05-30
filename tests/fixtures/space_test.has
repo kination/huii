@@ -1,7 +1,0 @@
----
-in:
-  - key: name
-    type: string
-out: []
----
-Print "Hello " followed by the name.

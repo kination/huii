@@ -1,6 +1,0 @@
-{
-  "source_hash": "b8ad143310604777dca3c15b419cc3c94233495e40c78832c16de5531de2463b",
-  "generated_code": "use std::env;\n\nfn prime(n: i32) -> bool {\n    let mut is_prime = true;\n\n    if n < 2 {\n        return false;\n    }\n\n    for i in 2..=((n as f64).sqrt() as i32 + 1) {\n        if n % i == 0 {\n            is_prime = false;\n            break;\n        }\n    }\n\n    return is_prime;\n}\n\nfn main() {\n    let args: Vec<String> = env::args().collect();\n\n    if args.len() != 2 {\n        println!(\"Usage: prime <number>\");\n        return;\n    }\n\n    let n = &args[1];\n\n    match n.parse::<i32>() {\n        Ok(n) => {\n            if prime(n) {\n                println!(\"{} is a prime number\", n);\n            } else {\n                println!(\"{} is not a prime number\", n);\n            }\n        },\n        Err(_) => println!(\"Invalid input\"),\n    }\n}",
-  "verified_at": "2026-02-18T09:30:53.178954+00:00",
-  "passed_tests": []
-}

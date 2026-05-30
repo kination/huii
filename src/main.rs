@@ -1,23 +1,4 @@
-use huii::cli::{Cli, Commands, commands};
-use clap::Parser;
-use std::process;
-
-#[tokio::main]
-async fn main() {
-    let cli = Cli::parse();
-
-    let result = match cli.command {
-        Some(Commands::Run { file, model, force, args, verbose }) => {
-            commands::execute_run(&file, model, force, args, verbose).await
-        }
-        None => {
-            println!("No command specified. Use --help for usage.");
-            return;
-        }
-    };
-
-    if let Err(e) = result {
-        eprintln!("Error: {:#}", e);
-        process::exit(1);
-    }
+fn main() {
+    // Placeholder. The CLI is implemented in Sprint 1, Task 5 (`huii check`).
+    // See .internal-doc/sprint_1_checklist.md.
 }
