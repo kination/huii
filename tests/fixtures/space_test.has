@@ -1,7 +1,0 @@
----
-in:
-  - key: name
-    type: string
-out: []
----
-Process the user name.
